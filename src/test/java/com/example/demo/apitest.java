@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -78,9 +77,6 @@ public class apitest {
 
 	@Test
 	public void testDeleteUser() {
-//		User user =service.findUser(16);
-//		userRepo.delete(user);
-//		assertNull(service.findUser(16));
 		service.hardDeleteUser(12);
 		Assert.assertNull(service.getuser(12));
 	}
@@ -88,17 +84,10 @@ public class apitest {
 	@Test
 	public void testGetUserbyname() {
 		 List<User> Users = service.getAllUserByName("Bharat99999");
-		  //assertNotNull(Users);
 		User user=service.findUser(20);
 		  assertEquals(Users.get(0).getUserName(), user.getUserName());
 		 
 	}
-
-	@Test
-	public void testGetUserSorted() {
-		
-	}
-
 	
 	@Test
 	public void testSoftDelete() {

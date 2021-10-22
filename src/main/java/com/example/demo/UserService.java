@@ -21,6 +21,9 @@ public interface UserService {
 	
 	List<User> getAllUserByName(String userName);
 	
+	List<User> getAllUserByLastName(String userName);
+
+	
 	List<User> sortByDateOfBirth();
 
 	List<User> sortByJoiningDate();

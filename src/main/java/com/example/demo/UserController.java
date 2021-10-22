@@ -1,15 +1,17 @@
 package com.example.demo;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
+import javax.xml.ws.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.config.RepositoryNameSpaceHandler;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,11 +21,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.exceptions.UserNotFound;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-	
 	@Autowired
 	UserService userservice;
 
@@ -40,7 +43,6 @@ public class UserController {
 
 	@GetMapping("/getall")
 	public List<User> getalluser() {
-		
 		return userservice.retriveAllUsers();
 
 	}
@@ -48,48 +50,65 @@ public class UserController {
 	List<User> users = new ArrayList<User>();
 
 	@PostMapping("/add")
-	public User addUser(@RequestBody User user) {
-		userservice.saveUser(user);
-		users.add(user);
-		System.out.println(users.size());
-		System.out.println(users.toString());
-		return userservice.saveUser(user);
+	public ResponseEntity<?> addUser(@RequestBody User user) {
 
+		if (user == null) {
+			return new ResponseEntity<>("invalid user type", HttpStatus.OK);
+		} else if (user.getUserName() == (null) || user.getPincode() == 0) {
+			return new ResponseEntity<>("invalid user attribute", HttpStatus.OK);
+		} else {
+			userservice.saveUser(user);
+			users.add(user);
+			return new ResponseEntity<>("added succesfully", HttpStatus.CREATED);
+		}
 	}
 
 	@GetMapping("/{Uid}")
-	public User getUser(@PathVariable("Uid") int uid) {
-		return userservice.findUser(uid);
+	public ResponseEntity<?> getUser(@PathVariable("Uid") int uid) throws UserNotFound {
+		User user = userservice.findUser(uid);
+		if (user == null) {
+			return new ResponseEntity<String>("no records with given id", HttpStatus.OK);
+		}
+		return new ResponseEntity<User>(user, HttpStatus.OK);
 
 	}
 
 	@PostMapping("/update/{Uid}")
-	public List<User> updateUser(@PathVariable("Uid") int uid, @RequestBody User user) {
+	public ResponseEntity<?> updateUser(@PathVariable("Uid") int uid, @RequestBody User user) {
 
-		userservice.updation(user);
-		return userservice.retriveAllUsers();
+		if (user == null) {
+			return new ResponseEntity<>("invalid user type", HttpStatus.OK);
+		} else if (user.getUserName() == null|| userservice.retriveAllUsers().stream().noneMatch(i -> i.getUserId() == uid)) {
+			return new ResponseEntity<>("invalid user attribute", HttpStatus.OK);
+		}
+		user.setUserId(uid);
+		userservice.saveUser(user);
+		return new ResponseEntity<>(user, HttpStatus.CREATED);
 
 	}
 
 	@DeleteMapping("/delete/{Uid}")
-	public List<User> deleteUser(@PathVariable("Uid") int uid) {
-
+	public ResponseEntity<?> deleteUser(@PathVariable("Uid") int uid) {
+		User user = userservice.findUser(uid);
+		if (user == null) {
+			return new ResponseEntity<>("invalid user type", HttpStatus.OK);
+		} else if (userservice.retriveAllUsers().stream().noneMatch(i -> i.getUserId() == uid)) {
+			return new ResponseEntity<>("User not present ", HttpStatus.OK);
+		}
 		userservice.hardDeleteUser(uid);
-		return userservice.retriveAllUsers();
+		return new ResponseEntity<>("sucessfully delete", HttpStatus.OK);
 
 	}
 
-	@GetMapping("/getbysurnanme/{surname}")
-	public List<User> getUser(@PathVariable("surname") String sirname) {
+	@GetMapping("/getbylastname/{lastname}")
+	public List<User> getUser(@PathVariable("lastname") String sirname) {
 
-		return users.stream().filter(x -> x.getSurname().equalsIgnoreCase(sirname)).collect(Collectors.toList());
+		return userservice.getAllUserByLastName(sirname);
 	}
 
 	@GetMapping("/getbyname/{userName}")
 	public List<User> getUserbyname(@PathVariable("userName") String userName) {
-		List<User> u2 = userservice.getAllUserByName(userName);
-
-		return u2;
+		return userservice.getAllUserByName(userName);
 	}
 
 	@GetMapping("/sortbydate")

@@ -7,9 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.User;
-import com.example.demo.UserRepository;
-
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -19,6 +16,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public User saveUser(User user) {
+		
 
 		return userRep.save(user);
 
@@ -26,11 +24,13 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<User> retriveAllUsers() {
+		
 		return userRep.findAll();
 	}
 
 	@Override
 	public User findUser(int id) {
+		
 		return userRep.findById(id).get();
 	}
 
@@ -63,8 +63,12 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Optional<User> getuser(int id) {
-		
 		return userRep.findByUserId(id);
+	}
+
+	public List<User> getAllUserByLastName(String lastName) {
+		
+		 return userRep.findBySurname(lastName);
 	}
 
 }
